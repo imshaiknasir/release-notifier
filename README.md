@@ -1,107 +1,99 @@
-# 🚀 GitHub Release Telegram Notifier
+# 🚀 Release & Changelog Monitor
 
-A lightweight, automated bot that monitors GitHub repositories for new releases and sends instant notifications to a Telegram channel. Currently configured to track **Playwright** and **Selenium**.
-
----
-
-## 🛠 How It Works
-
-This project leverages **GitHub Actions** and a **Node.js** script to periodically check for updates without requiring a dedicated server.
-
-1.  **GitHub Action (`release-monitor.yml`)**: Triggered every 15 minutes or manually. It checks out the code, sets up the Node.js environment, and executes the notifier.
-2.  **Notifier Logic (`notifier.js`)**:
-    *   Fetches the latest release data from the GitHub API for specified repositories.
-    *   Compares the latest tag with the one stored in `last_releases.json`.
-    *   If a new version is detected, it formats a message and sends it via the **Telegram Bot API**.
-    *   Updates `last_releases.json` with the new tag.
-3.  **State Management**: GitHub Actions commits and pushes the updated `last_releases.json` back to the repository to keep track of notified releases.
+A sophisticated, serverless automation suite that monitors GitHub releases and product changelogs, delivering real-time notifications to Telegram. Stay ahead of the curve in the QA and AI engineering landscape.
 
 ---
 
-## 📊 Process Flow
+## 📢 Stay Connected
+
+Get instant updates on the latest tool releases and changelog entries by joining our official Telegram channel:
+
+[![Join Telegram](https://img.shields.io/badge/Telegram-Join%20Channel-blue?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/qachangelog)
+
+**[t.me/qachangelog](https://t.me/qachangelog)**
+
+---
+
+## 🌟 Key Features
+
+- **Multi-Source Monitoring**: Tracks both GitHub repository releases and external product changelog pages.
+- **Intelligent Extraction**: Uses tailored methods including Cheerio (HTML), RSC (React Server Components) parsing, and JS bundle analysis.
+- **Rich Notifications**: Sends beautifully formatted Telegram messages with OG images, version details, and direct links.
+- **Serverless Architecture**: Runs entirely on GitHub Actions—no hosting costs, no maintenance.
+
+### 🔍 Currently Tracking
+- **Frameworks**: Playwright, Selenium, Claude Code, Gemini CLI.
+- **Platforms**: Antigravity, GitHub Copilot, Cursor, Windsurf, Devin, Trae, Gemini API.
+
+---
+
+## 🛠 Project Architecture
+
+This system is built with **Node.js** and automated via **GitHub Actions**.
+
+### Components
+- **`notifier.js`**: Orchestrates GitHub API fetching and Telegram messaging.
+- **`changelog_monitor.js`**: Specialized scraper for tracking dynamic changelog websites.
+- **`changelog_config.js`**: Centralized configuration for target products and extraction logic.
+- **`.github/workflows/`**: automated schedules for continuous monitoring.
+
+### 📊 Logic Flow
 
 ```mermaid
 graph TD
-    Start([Timer: Every 15 Mins]) --> Checkout[Checkout Repository]
-    Checkout --> Setup[Setup Node.js]
-    Setup --> Run[Run notifier.js]
+    Start([Timer: Periodic]) --> Checkout[Checkout Code]
+    Checkout --> Setup[Node.js Environment]
+    Setup --> RunR[Run notifier.js]
+    Setup --> RunC[Run changelog_monitor.js]
     
-    subgraph Bot Logic
-    Run --> Fetch[Fetch Latest GitHub Releases]
-    Fetch --> Compare{Is it a New Release?}
-    Compare -- No --> Skip[No Action Needed]
-    Compare -- Yes --> Notify[Send Telegram Message]
-    Notify --> Update[Update last_releases.json]
+    subgraph GitHub Monitoring
+    RunR --> FetchR[GitHub API]
+    FetchR --> CompareR{New Release?}
+    CompareR -- Yes --> NotifyR[Telegram Message]
+    end
+
+    subgraph Changelog Monitoring
+    RunC --> FetchC[Web Scraper]
+    FetchC --> CompareC{New Entry?}
+    CompareC -- Yes --> NotifyC[Telegram Message]
     end
     
-    Update --> Commit[Commit & Push Changes]
-    Commit --> End([Finish])
-    Skip --> End
+    NotifyR --> Update[JSON State Update]
+    NotifyC --> Update
+    Update --> Commit[Push to GitHub]
+    Commit --> End([Cycle Complete])
 ```
 
 ---
 
-## 📁 Project Structure
+## 🚀 Get Started
 
-*   `.github/workflows/release-monitor.yml`: The automation engine that schedules the bot.
-*   `notifier.js`: Core logic for API interaction and message formatting.
-*   `config.js`: Configuration file where you define which repositories to track.
-*   `last_releases.json`: Simple database tracking the last notified version for each repo.
-*   `package.json`: Project metadata and dependencies (Axios).
+### Join the Existing Feed
+Simply join [**@qachangelog**](https://t.me/qachangelog) to receive all updates immediately.
 
----
-
-## 🚀 Setup Instructions
-
-Follow these steps to set up your own release notifier:
-
-### 1. Create a Telegram Bot
-1.  Message [@BotFather](https://t.me/botfather) on Telegram and create a new bot.
-2.  Save the **API Token** provided.
-3.  Create a Telegram Channel or Group where you want notifications.
-4.  Add your bot as an administrator.
-5.  Get your **Chat ID** (You can use [@userinfobot](https://t.me/userinfobot) or similar tools to find your ID or the channel ID).
-
-### 2. Fork and Configure
-1.  **Fork** this repository to your own GitHub account.
-2.  Go to your fork's **Settings > Secrets and variables > Actions**.
-3.  Create two **Repository Secrets**:
-    *   `TELEGRAM_BOT_TOKEN`: Your bot's API token.
-    *   `TELEGRAM_CHAT_ID`: Your target Chat ID.
-
-### 3. Customize Repositories
-To track different repositories, edit the `REPOS` array in `config.js`:
-
-```javascript
-// config.js
-module.exports = {
-    REPOS: [
-        'microsoft/playwright',
-        'SeleniumHQ/selenium',
-        'your-org/your-repo' // Add more here
-    ]
-};
-```
-
-### 4. Enable the Workflow
-By default, GitHub Actions may be disabled on forked repositories.
-1.  Navigate to the **Actions** tab in your repository.
-2.  Click "I understand my workflows, go ahead and enable them".
+### Fork & Host Your Own
+1.  **Fork** this repository.
+2.  **Configure Secrets**: Add `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` to your GitHub Repository Secrets (**Settings > Secrets > Actions**).
+3.  **Customize Targets**:
+    - Modify `REPOS` in `config.js`.
+    - Modify `PRODUCTS` in `changelog_config.js`.
+4.  **Enable Actions**: Navigate to the **Actions** tab and enable the workflows.
 
 ---
 
-## 🛠 Local Development
+## 💻 Local Development
 
-If you want to run the bot locally for testing:
-
-1.  Clone your repository.
+1.  Clone your fork.
 2.  Install dependencies: `npm install`
-3.  Set environment variables in your terminal:
-    *   `set TELEGRAM_BOT_TOKEN=your_token`
-    *   `set TELEGRAM_CHAT_ID=your_id`
-4.  Run the bot: `npm start`
+3.  Set environment variables:
+    ```bash
+    export TELEGRAM_BOT_TOKEN="your_token"
+    export TELEGRAM_CHAT_ID="your_id"
+    ```
+4.  Run monitors: `npm run monitor` (or `node notifier.js` / `node changelog_monitor.js`)
 
 ---
 
 ## 📜 License
-This project is open-source and available under the MIT License.
+MIT License © 2025.
+

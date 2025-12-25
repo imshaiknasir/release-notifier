@@ -4,7 +4,10 @@
     "description": "Notifies a Telegram channel of new GitHub releases for Playwright and Selenium.",
     "main": "notifier.js",
     "scripts": {
-        "start": "node notifier.js"
+        "start": "node notifier.js",
+        "monitor": "node notifier.js && node changelog_monitor.js",
+        "monitor:releases": "node notifier.js",
+        "monitor:changelogs": "node changelog_monitor.js"
     },
     "dependencies": {
         "axios": "^1.6.2",
