@@ -8,20 +8,54 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 const DATA_FILE = path.join(__dirname, 'last_changelogs.json');
 
-async function sendTelegramMessage(text) {
-    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+async function sendTelegramMessage(text, photoUrl = null) {
+    const isPhoto = photoUrl && photoUrl.startsWith('http');
+    const method = isPhoto ? 'sendPhoto' : 'sendMessage';
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${method}`;
+
     const payload = {
         chat_id: TELEGRAM_CHAT_ID,
-        text: text,
         parse_mode: 'Markdown',
         disable_web_page_preview: false
     };
 
+    if (isPhoto) {
+        payload.photo = photoUrl;
+        payload.caption = text.length > 1024 ? text.substring(0, 1021) + '...' : text;
+    } else {
+        payload.text = text;
+    }
+
     try {
         await axios.post(url, payload);
     } catch (error) {
-        console.error('Error sending Telegram message:', error.response?.data || error.message);
+        console.error(`Error sending Telegram ${method}:`, error.response?.data || error.message);
+        if (isPhoto) {
+            // Fallback to text if photo fails
+            await sendTelegramMessage(text);
+        }
     }
+}
+
+async function extractOgImage(url) {
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            },
+            timeout: 5000
+        });
+        const $ = cheerio.load(response.data);
+        const ogImage = $('meta[property="og:image"]').attr('content') ||
+            $('meta[name="twitter:image"]').attr('content');
+
+        if (ogImage) {
+            return ogImage.startsWith('http') ? ogImage : new URL(ogImage, url).href;
+        }
+    } catch (error) {
+        console.error(`Error extracting OG image from ${url}:`, error.message);
+    }
+    return null;
 }
 
 async function run() {
@@ -91,7 +125,12 @@ async function run() {
                     `${latest.date ? `Date: _${latest.date}_\n` : ''}\n` +
                     `🔗 [Read more](${latest.link})`;
 
-                await sendTelegramMessage(message);
+                let photoUrl = null;
+                if (product.name !== 'Trae') {
+                    photoUrl = await extractOgImage(latest.link);
+                }
+
+                await sendTelegramMessage(message, photoUrl);
                 lastChangelogs[product.name] = currentKey;
                 updated = true;
             } else {
