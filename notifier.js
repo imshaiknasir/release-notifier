@@ -28,39 +28,57 @@ async function getLatestRelease(repo) {
 }
 
 async function sendTelegramMessage(text, photoUrl = null) {
-    // Basic detection for image extensions
-    const isPhoto = photoUrl && (photoUrl.match(/\.(jpe?g|png|gif|webp|heic)(\?|$)/i));
+    const isPhoto = photoUrl && photoUrl.startsWith('http');
     const method = isPhoto ? 'sendPhoto' : 'sendMessage';
     const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/${method}`;
 
     const payload = {
         chat_id: TELEGRAM_CHAT_ID,
         parse_mode: 'Markdown',
+        disable_web_page_preview: false
     };
 
     if (isPhoto) {
         payload.photo = photoUrl;
         // Telegram caption limit for photos is 1024 characters
-        // If longer, we truncate and ensure the link is still visible
-        if (text.length > 1024) {
-            payload.caption = text.substring(0, 1000) + '...\n\n(Full notes in link below)';
-        } else {
-            payload.caption = text;
-        }
+        payload.caption = text.length > 1024 ? text.substring(0, 1021) + '...' : text;
     } else {
         payload.text = text;
-        payload.disable_web_page_preview = false;
     }
 
     try {
         await axios.post(url, payload);
     } catch (error) {
         console.error(`Error sending Telegram ${method}:`, error.response?.data || error.message);
-        // Fallback to plain text if photo fails or URL is inaccessible
+        // Fallback to plain text if photo fails
         if (isPhoto) {
             await sendTelegramMessage(text);
         }
     }
+}
+
+async function extractOgImage(url) {
+    try {
+        const response = await axios.get(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            },
+            timeout: 5000
+        });
+        const match = response.data.match(/<meta\s+property=["']og:image["']\s+content=["'](.*?)["']/i) ||
+            response.data.match(/<meta\s+name=["']twitter:image["']\s+content=["'](.*?)["']/i);
+
+        if (match) {
+            let imageUrl = match[1];
+            if (imageUrl.startsWith('/')) {
+                imageUrl = new URL(imageUrl, url).href;
+            }
+            return imageUrl;
+        }
+    } catch (error) {
+        console.error(`Error extracting OG image from ${url}:`, error.message);
+    }
+    return null;
 }
 
 function extractFirstImage(body) {
@@ -132,7 +150,12 @@ async function run() {
         if (latest && latest.tag_name !== lastReleases[repo]) {
             console.log(`New release found for ${repo}: ${latest.tag_name}`);
 
-            const photoUrl = extractFirstImage(latest.body);
+            let photoUrl = extractFirstImage(latest.body);
+            if (!photoUrl) {
+                console.log(`No image in body, trying to extract OG image for ${repo}...`);
+                photoUrl = await extractOgImage(latest.html_url);
+            }
+
             const releaseBody = formatReleaseBody(repo, latest.body);
 
             const message = `🚀 *New Release: ${repo}*\n` +
