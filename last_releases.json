@@ -3,5 +3,5 @@
   "SeleniumHQ/selenium": "selenium-4.40.0",
   "google-gemini/gemini-cli": "v0.27.3",
   "anthropics/claude-code": "v2.1.37",
-  "VibiumDev/vibium": "v0.1.4"
+  "VibiumDev/vibium": "v0.1.6"
 }
