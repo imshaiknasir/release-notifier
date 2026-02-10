@@ -1,7 +1,7 @@
 {
   "microsoft/playwright": "v1.58.2",
   "SeleniumHQ/selenium": "selenium-4.40.0",
-  "google-gemini/gemini-cli": "v0.27.4",
+  "google-gemini/gemini-cli": "v0.28.0",
   "anthropics/claude-code": "v2.1.38",
   "VibiumDev/vibium": "v0.1.7"
 }
