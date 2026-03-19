@@ -9,7 +9,8 @@ module.exports = {
         'SeleniumHQ/selenium',
         'google-gemini/gemini-cli',
         'anthropics/claude-code',
-        'VibiumDev/vibium'
+        'VibiumDev/vibium',
+        'anomalyco/opencode'
     ],
 
     // You can add other settings here in the future

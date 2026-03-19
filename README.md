@@ -22,7 +22,7 @@ Get instant updates on the latest tool releases and changelog entries by joining
 - **Serverless Architecture**: Runs entirely on GitHub Actions—no hosting costs, no maintenance.
 
 ### 🔍 Currently Tracking
-- **Frameworks**: Playwright, Selenium, Claude Code, Gemini CLI.
+- **Frameworks**: Playwright, Selenium, Claude Code, Gemini CLI, Vibium, OpenCode.
 - **Platforms**: Antigravity, GitHub Copilot, Cursor, Windsurf, Devin, Trae, Gemini API.
 
 ---
