@@ -4,5 +4,5 @@
   "google-gemini/gemini-cli": "v0.35.3",
   "anthropics/claude-code": "v2.1.87",
   "VibiumDev/vibium": "v26.3.18",
-  "anomalyco/opencode": "v1.3.5"
+  "anomalyco/opencode": "v1.3.6"
 }
