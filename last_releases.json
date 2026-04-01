@@ -1,5 +1,5 @@
 {
-  "microsoft/playwright": "v1.59.0",
+  "microsoft/playwright": "v1.59.1",
   "SeleniumHQ/selenium": "selenium-4.41.0",
   "google-gemini/gemini-cli": "v0.35.3",
   "anthropics/claude-code": "v2.1.89",
